@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Workshop;
+use Carbon\Carbon;
 use Illuminate\Routing\Controller as BaseController;
 
 class EventsController extends BaseController
@@ -184,6 +185,14 @@ class EventsController extends BaseController
      */
 
     public function getFutureEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 2');
+        // throw new \Exception('implement in coding task 2');
+
+        $futureEventsWithWorkshops = Event::with('workshops')
+            ->whereHas('workshops', function ($subQ) {
+                return $subQ->havingRaw('MIN(workshops.start) > "' . Carbon::now()->format("Y-m-d H:i:s") . '"')
+                    ->groupBy('event_id');
+            })
+            ->get()->toArray();
+        return response()->json($futureEventsWithWorkshops);
     }
 }
